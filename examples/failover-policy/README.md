@@ -32,7 +32,6 @@ This directory contains an example usage of the **terraform-azure-mssql-db**. It
 | <a name="module_resource_group"></a> [resource\_group](#module\_resource\_group) | terraform-az-modules/resource-group/azurerm | 1.0.3 |
 | <a name="module_subnet"></a> [subnet](#module\_subnet) | terraform-az-modules/subnet/azurerm | 1.0.1 |
 | <a name="module_vnet"></a> [vnet](#module\_vnet) | terraform-az-modules/vnet/azurerm | 1.0.3 |
-| <a name="module_storage"></a> [storage](#module\_storage) | terraform-az-modules/storage/azurerm | 1.0.0 |
 | <a name="module_vault"></a> [vault](#module\_vault) | terraform-az-modules/key-vault/azurerm | 1.0.4 |
 
 
@@ -60,6 +59,5 @@ No input variables are defined in this example.
 | <a name="output_primary_mssql_server_admin_passwords"></a> [primary\_mssql_server_admin\_password](#output\primary\_mssql_server\_admin\_password) | The Password of administrator of Primary SQL Server. |
 | <a name="output_primary_mssql_database_id"></a> [primary\_mssql_database\_id](#output\_primary\_mssql_database\_id) | The ID of MSSQL Database. |
 | <a name="output_primary_mssql_database_name"></a> [primary\_mssql_database\_name](#output\_primary\_mssql_database\_name) | The Name of MSSQL Database. |
-| <a name="output_mssql_elasticpool_name"></a> [mssql\_elasticpool\_name](#output\_mssql\_elasticpool\_name) | The Name of MSSQL ElasticPool. |
-| <a name="output_primary_mssql_server_dns_alias_record_set"></a> [primary\_mssql_server\_dns_alias_record_set](#output\_primary\_mssql_server\_dns_alias_record_set) | The fully qualified DNS record for alias. |
+| <a name="output_mssql_failover_group_id"></a> [mssql\_failover_group\_id](#output\_mssql\_failover_group\_id) | The ID of the MSSQL Failover Group. |
 <!-- END_TF_DOCS -->

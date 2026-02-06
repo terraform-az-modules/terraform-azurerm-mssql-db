@@ -26,16 +26,16 @@
 </p>
 <p align="center">
 
-<a href='https://facebook.com/sharer/sharer.php?u=https://github.com/clouddrove/terraform-module-template'>
+<a href='https://facebook.com/sharer/sharer.php?u=https://github.com/clouddrove/terraform-azure-mssql-db'>
   <img title="Share on Facebook" src="https://user-images.githubusercontent.com/50652676/62817743-4f64cb80-bb59-11e9-90c7-b057252ded50.png" />
 </a>
 <a href='https://www.instagram.com/cloud_drove?igsh=cHJqaDY3bGtnYmh3' title="Follow On Instagram">
   <img src="https://github.com/gauravghongde/social-icons/blob/master/SVG/Color/Instagram.svg" width="23" height="23" />
 </a>
-<a href='https://www.linkedin.com/shareArticle?mini=true&title=Terraform+Module+Template&url=https://github.com/clouddrove/terraform-module-template'>
+<a href='https://www.linkedin.com/shareArticle?mini=true&title=Terraform+Azure+mssql+db&url=https://github.com/clouddrove/terraform-azure+mssql+db'>
   <img title="Share on LinkedIn" src="https://user-images.githubusercontent.com/50652676/62817742-4e339e80-bb59-11e9-87b9-a1f68cae1049.png" />
 </a>
-<a href='https://twitter.com/intent/tweet/?text=Terraform+Module+Template&url=https://github.com/clouddrove/terraform-module-template'>
+<a href='https://twitter.com/intent/tweet/?text=Terraform+Azure+mssql+db&url=https://github.com/clouddrove/terraform-azure-mssql-db'>
   <img title="Share on Twitter" src="https://user-images.githubusercontent.com/50652676/62817740-4c69db00-bb59-11e9-8a79-3580fbbf6d5c.png" />
 </a>
 
@@ -65,7 +65,7 @@ This table contains both Prerequisites and Providers:
 
 ## Examples
 
-**IMPORTANT:** Since the master branch used in source varies based on new modifications, we recommend using the [release versions](https://github.com/terraform-az-modules/terraform-module-template/releases).
+**IMPORTANT:** Since the master branch used in source varies based on new modifications, we recommend using the [release versions](https://github.com/terraform-az-modules/terraform-azure-mssql-db/releases).
 
 📌 For additional usage examples, check the complete list under [`examples/`](./examples) directory.
 

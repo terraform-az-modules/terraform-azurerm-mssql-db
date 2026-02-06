@@ -6,7 +6,7 @@ data "azurerm_client_config" "current_client_config" {}
 
 locals {
   name        = "app"
-  environment = "test"
+  environment = "qa"
   location    = "centralindia"
   label_order = ["name", "environment", "location"]
 }
@@ -97,27 +97,6 @@ module "private_dns_zone" {
   ]
 }
 
-##-----------------------------------------------------------------------------
-# Storage Account module call
-##-----------------------------------------------------------------------------
-
-module "storage-account" {
-  source  = "terraform-az-modules/storage/azurerm"
-  version = "1.0.0"
-
-  name                     = local.name
-  environment              = local.environment
-  label_order              = local.label_order
-  location                 = module.resource_group.resource_group_location
-  resource_group_name      = module.resource_group.resource_group_name
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-
-  ##   Storage Container
-  containers_list = [
-    { name = "app-test", access_type = "private" },
-  ]
-}
 
 # ------------------------------------------------------------------------------
 # Key Vault
@@ -132,12 +111,12 @@ module "vault" {
   location                      = module.resource_group.resource_group_location
   subnet_id                     = module.subnet.subnet_ids.subnet1
   public_network_access_enabled = true
-  sku_name                      = "premium"
   private_dns_zone_ids          = module.private_dns_zone.private_dns_zone_ids.key_vault
   soft_delete_retention_days    = 7
+  sku_name                      = "premium"
   network_acls = {
     bypass         = "AzureServices"
-    default_action = "Deny"
+    default_action = "Allow"
     ip_rules       = ["0.0.0.0/0"]
   }
   reader_objects_ids = {
@@ -146,47 +125,34 @@ module "vault" {
       principal_id         = data.azurerm_client_config.current_client_config.object_id
     }
   }
-
+  enable_rbac_authorization  = true
   diagnostic_setting_enable  = true
   log_analytics_workspace_id = module.log-analytics.workspace_id
 }
 
-##----------------------------------------------------------------------------- 
-## Mssql Server database
-##-----------------------------------------------------------------------------
-
 module "mssql-server" {
-  depends_on                                 = [module.resource_group, module.vnet, module.vault]
-  source                                     = "../.."
-  name                                       = local.name
-  environment                                = local.environment
-  label_order                                = local.label_order
-  resource_group_name                        = module.resource_group.resource_group_name
-  location                                   = module.resource_group.resource_group_location
-  encryption                                 = true
-  sql_server_version                         = "12.0"
-  administrator_login                        = "mssqladmin"
-  enable_sql_server_extended_auditing_policy = true
-  storage_account_blob_endpoint              = module.storage-account.storage_account_primary_blob_endpoint
-  storage_account_access_key                 = module.storage-account.storage_primary_access_key
-  key_vault_id                               = module.vault.id
-  enable_mssql_db                            = true
-  enable_elasticpool                         = true
-  elasticpool_max_size_gb                    = 4.8828125
-  sku = {
-    name     = "BasicPool"
-    tier     = "Basic"
-    capacity = 50
+  depends_on            = [module.resource_group, module.vnet, module.vault]
+  source                = "../.."
+  name                  = local.name
+  environment           = local.environment
+  label_order           = local.label_order
+  resource_group_name   = module.resource_group.resource_group_name
+  location              = module.resource_group.resource_group_location
+  encryption            = true
+  sql_server_version    = "12.0"
+  administrator_login   = "mssqladmin"
+  key_vault_id          = module.vault.id
+  enable_mssql_db       = true
+  enable_failover_group = true
+  read_write_endpoint_failover_policy = {
+    mode          = "Automatic"
+    grace_minutes = 60
   }
-
-  per_database_settings = {
-    min_capacity = 0
-    max_capacity = 5
-  }
-  enable_dns_alias           = true
-  enable_private_endpoint    = true
-  private_endpoint_subnet_id = module.subnet.subnet_ids.subnet1 # Use private endpoint subnet
-  enable_diagnostic          = true
-  enable_log_monitoring      = false
-  log_analytics_workspace_id = module.log-analytics.workspace_id
+  enable_private_endpoint            = true
+  private_endpoint_subnet_id         = module.subnet.subnet_ids.subnet1
+  enable_transparent_data_encryption = true
+  enable_diagnostic                  = true
+  enable_log_monitoring              = true
+  log_analytics_workspace_id         = module.log-analytics.workspace_id
 }
+

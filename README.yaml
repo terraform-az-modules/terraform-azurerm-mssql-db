@@ -5,13 +5,13 @@
 #
 
 # Name of this project
-name : Terraform Azure Module Template
+name : Terraform Azure MSSQL DATABASE
 
 # License of this project
 license: "APACHE"
 
 # Canonical GitHub repo
-github_repo: terraform-az-modules/terraform-module-template
+github_repo: terraform-az-modules/terraform-azurerm-mssql-db
 
 # Badges to display
 badges:
@@ -38,7 +38,7 @@ providers:
 
 #  description of this project
 description: |-
-  Terraform Azure Module Template to create new modules using this as baseline
+  Terraform Azure Mssql Database to create new Mssql Databases using this as baseline
 
 # How to use this project
 # How to use this project
