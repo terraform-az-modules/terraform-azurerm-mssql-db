@@ -308,192 +308,79 @@ variable "enable_log_monitoring" {
 ##------------------------------------------------------
 ## Database
 ##------------------------------------------------------
+variable "databases" {
+  description = "Map of MSSQL databases to create on the primary server, keyed by database name."
+  type = map(object({
+    auto_pause_delay_in_minutes                                = optional(number)
+    create_mode                                                = optional(string)
+    creation_source_database_id                                = optional(string)
+    collation                                                  = optional(string)
+    elastic_pool_id                                            = optional(string)
+    enclave_type                                               = optional(string)
+    geo_backup_enabled                                         = optional(bool)
+    maintenance_configuration_name                             = optional(string)
+    ledger_enabled                                             = optional(bool)
+    license_type                                               = optional(string)
+    max_size_gb                                                = optional(number)
+    min_capacity                                               = optional(number)
+    restore_point_in_time                                      = optional(string)
+    recover_database_id                                        = optional(string)
+    recovery_point_id                                          = optional(string)
+    restore_dropped_database_id                                = optional(string)
+    restore_long_term_retention_backup_id                      = optional(string)
+    read_replica_count                                         = optional(number)
+    read_scale                                                 = optional(bool)
+    sample_name                                                = optional(string)
+    sku_name                                                   = optional(string)
+    storage_account_type                                       = optional(string)
+    transparent_data_encryption_enabled                        = optional(bool)
+    transparent_data_encryption_key_vault_key_id               = optional(string)
+    transparent_data_encryption_key_automatic_rotation_enabled = optional(bool)
+    zone_redundant                                             = optional(bool)
+    secondary_type                                             = optional(string)
+    use_elasticpool                                            = optional(bool, false)
+    tags                                                       = optional(map(string), {})
+
+    import = optional(object({
+      storage_uri                  = string
+      storage_key                  = optional(string)
+      storage_key_type             = optional(string)
+      administrator_login          = string
+      administrator_login_password = optional(string)
+      authentication_type          = string
+      storage_account_id           = optional(string)
+    }))
+
+    threat_detection_policy = optional(object({
+      state                      = optional(string)
+      disabled_alerts            = optional(list(string))
+      email_account_admins       = optional(bool)
+      email_addresses            = optional(list(string))
+      retention_days             = optional(number)
+      storage_account_access_key = optional(string)
+      storage_endpoint           = optional(string)
+    }))
+
+    long_term_retention_policy = optional(object({
+      weekly_retention          = optional(string)
+      monthly_retention         = optional(string)
+      yearly_retention          = optional(string)
+      week_of_year              = optional(number)
+      immutable_backups_enabled = optional(bool)
+    }))
+
+    short_term_retention_policy = optional(object({
+      retention_days           = optional(number)
+      backup_interval_in_hours = optional(number)
+    }))
+  }))
+  default = {}
+}
 
 variable "enable_mssql_db" {
   type        = bool
   default     = false
   description = "Enable or disable creation of the MSSQL Database."
-}
-
-variable "auto_pause_delay_in_minutes" {
-  type        = number
-  default     = null
-  description = "Time in minutes after which the database is automatically paused. Use -1 to disable auto-pause. Only applicable for Serverless databases."
-}
-
-variable "transparent_data_encryption_enabled" {
-  type        = bool
-  default     = true
-  description = "If true, Transparent Data Encryption (TDE) is enabled on the database."
-}
-
-variable "create_mode" {
-  type        = string
-  default     = null
-  description = "The create mode of the database. Possible values are Copy, Default, OnlineSecondary, PointInTimeRestore, Recovery, Restore, RestoreExternalBackup, RestoreExternalBackupSecondary, RestoreLongTermRetentionBackup and Secondary."
-}
-
-variable "creation_source_database_id" {
-  type        = string
-  default     = null
-  description = "The ID of the source database from which to create the new database."
-}
-
-variable "collation" {
-  type        = string
-  default     = null
-  description = "Specifies the collation of the database."
-}
-
-variable "elastic_pool_id" {
-  type        = string
-  default     = null
-  description = "Specifies the ID of the elastic pool containing this database."
-}
-
-variable "geo_backup_enabled" {
-  type        = bool
-  default     = true
-  description = "A boolean that specifies if the Geo Backup Policy is enabled."
-}
-
-variable "ledger_enabled" {
-  type        = bool
-  default     = false
-  description = "A boolean that specifies if this is a ledger database."
-}
-
-variable "min_capacity" {
-  type        = number
-  default     = null
-  description = "Minimal capacity that database will always have allocated, if not paused. This property is only settable for Serverless databases."
-}
-
-variable "restore_point_in_time" {
-  type        = string
-  default     = null
-  description = "Specifies the point in time (ISO8601 format) of the source database that will be restored to create the new database. This property is only settable for create_mode= PointInTimeRestore databases."
-}
-
-variable "recover_database_id" {
-  type        = string
-  default     = null
-  description = "The ID of the database to be recovered. This property is only applicable when the create_mode is Recovery."
-}
-
-variable "database_max_size_gb" {
-  type        = number
-  default     = 2
-  description = "The Maximum size of database."
-}
-
-variable "recovery_point_id" {
-  type        = string
-  default     = null
-  description = "The ID of the Recovery Services Recovery Point Id to be restored. This property is only applicable when the create_mode is Recovery."
-}
-
-variable "restore_dropped_database_id" {
-  type        = string
-  default     = null
-  description = "The ID of the database to be restored. This property is only applicable when the create_mode is Restore."
-}
-
-variable "restore_long_term_retention_backup_id" {
-  type        = string
-  default     = null
-  description = "The ID of the long term retention backup to be restored. This property is only applicable when the create_mode is RestoreLongTermRetentionBackup."
-}
-
-variable "read_replica_count" {
-  type        = number
-  default     = null
-  description = "The number of readonly secondary replicas associated with the database to which readonly application intent connections may be routed. This property is only settable for Hyperscale edition databases."
-}
-
-variable "read_scale" {
-  type        = bool
-  default     = false
-  description = "If enabled, connections that have application intent set to readonly in their connection string may be routed to a readonly secondary replica. This property is only settable for Premium and Business Critical databases."
-}
-
-variable "sample_name" {
-  type        = string
-  default     = null
-  description = "Specifies the name of the sample schema to apply when creating this database. Possible value is AdventureWorksLT."
-}
-
-variable "database_sku_name" {
-  type        = string
-  default     = null
-  description = "Specifies the name of the SKU used by the database. For example, GP_S_Gen5_2,HS_Gen4_1,BC_Gen5_2, ElasticPool, Basic,S0, P2 ,DW100c, DS100."
-}
-
-variable "storage_account_type" {
-  type        = string
-  default     = null
-  description = "Specifies the storage account type used to store backups for this database. Possible values are Geo, GeoZone, Local and Zone. Defaults to Geo."
-}
-
-variable "transparent_data_encryption_key_automatic_rotation_enabled" {
-  type        = bool
-  default     = false
-  description = "Boolean flag to specify whether TDE automatically rotates the encryption Key to latest version or not."
-}
-
-variable "secondary_type" {
-  type        = string
-  default     = null
-  description = "How do you want your replica to be made? Valid values include Geo, Named and Standby. Defaults to Geo."
-}
-
-variable "import" {
-  type = object({
-    storage_uri                  = string
-    storage_key                  = string
-    storage_key_type             = string
-    administrator_login          = string
-    administrator_login_password = string
-    authentication_type          = string
-    storage_account_id           = optional(string)
-  })
-  default     = null
-  description = "Optional import configuration for importing a .bacpac file into the database."
-}
-
-variable "threat_detection_policy" {
-  type = object({
-    state                      = optional(string)
-    disabled_alerts            = optional(list(string))
-    email_account_admins       = optional(bool)
-    email_addresses            = optional(list(string))
-    retention_days             = optional(number)
-    storage_account_access_key = optional(string)
-    storage_endpoint           = optional(string)
-  })
-  default     = null
-  description = "Optional SQL Database Threat Detection policy configuration."
-}
-
-variable "long_term_retention_policy" {
-  type = object({
-    weekly_retention          = optional(string)
-    monthly_retention         = optional(string)
-    yearly_retention          = optional(string)
-    week_of_year              = optional(number)
-    immutable_backups_enabled = optional(bool)
-  })
-  default     = null
-  description = "Optional long-term retention (LTR) policy for the SQL database."
-}
-
-variable "short_term_retention_policy" {
-  type = object({
-    retention_days           = number
-    backup_interval_in_hours = optional(number, 24)
-  })
-  default     = null
-  description = "Optional short-term retention (STR) policy for the SQL database."
 }
 
 variable "enable_database_extended_auditing_policy" {
@@ -657,13 +544,6 @@ variable "auto_rotation_enabled" {
   default     = false
   description = "Auto rotation should be Enable or Disable."
 }
-
-
-variable "sqlserver_name" {
-  type        = string
-  default     = ""
-  description = "SQL server Name."
-}
 ##---------------------------------------------------
 ##JOB
 ##---------------------------------------------------
@@ -731,12 +611,12 @@ variable "job_step" {
     retry_attempts                    = optional(number)
     retry_interval_backoff_multiplier = optional(number)
     timeout_seconds                   = optional(number)
-    output_targets = optional(list(object({
-      mssql_database_id = string
+    output_target = optional(map(object({
+      database_key      = string
       table_name        = string
-      schema_name       = optional(string)
       job_credential_id = optional(string)
-    })), [])
+      schema_name       = optional(string)
+    })))
   }))
   default     = {}
   description = "Map of Job Steps to be created for a Job."
@@ -752,6 +632,12 @@ variable "sqldb_init_script_file" {
   type        = string
   default     = ""
   description = "SQL Script file name to create and initialize the database."
+}
+
+variable "job_agent_database_key" {
+  type        = string
+  default     = null
+  description = "Key of the database in var.databases to host the SQL Job Agent."
 }
 
 ##--------------------------------------------------------------------------
@@ -793,6 +679,12 @@ variable "private_endpoint_subnet_id" {
   type        = string
   default     = null
   description = "Subnet ID for private endpoint."
+}
+
+variable "private_dns_zone_ids" {
+  description = "List of Private DNS Zone IDs to associate with the private endpoint."
+  type        = list(string)
+  default     = []
 }
 
 ##------------------------------------------------------
@@ -955,12 +847,6 @@ variable "key_vault_id" {
   type        = string
   default     = null
   description = "Azure Key Vault ID for integration."
-}
-
-variable "private_dns_zone_ids" {
-  type        = string
-  default     = null
-  description = "Id of the private DNS Zone"
 }
 
 ##------------------------------------------------------------------

@@ -1,6 +1,7 @@
 ##-----------------------------------------------------------------------------
 ## Outputs
 ##-----------------------------------------------------------------------------
+
 output "primary_mssql_server_id" {
   description = "The primary Microsoft SQL Server ID"
   value       = module.mssql-server.primary_mssql_server_id
@@ -23,14 +24,14 @@ output "primary_mssql_server_admin_password" {
   sensitive   = true
 }
 
-output "primary_mssql_server_database_id" {
-  description = "The SQL Database ID"
-  value       = module.mssql-server.primary_mssql_server_database_id
+output "primary_mssql_server_database_ids" {
+  description = "Map of SQL Database IDs keyed by database name"
+  value       = module.mssql-server.primary_mssql_server_database_ids
 }
 
-output "primary_mssql_server_database_name" {
-  description = "The SQL Database Name"
-  value       = module.mssql-server.primary_mssql_server_database_name
+output "primary_mssql_server_database_names" {
+  description = "Map of SQL Database names keyed by database name"
+  value       = module.mssql-server.primary_mssql_server_database_names
 }
 
 output "mssql_elasticpool_name" {

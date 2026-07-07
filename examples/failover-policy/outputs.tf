@@ -23,17 +23,17 @@ output "sql_server_admin_password" {
   sensitive   = true
 }
 
-output "sql_database_id" {
-  description = "The SQL Database ID"
-  value       = module.mssql-server.primary_mssql_server_database_id
+output "sql_database_ids" {
+  description = "Map of SQL Database IDs keyed by database name"
+  value       = module.mssql-server.primary_mssql_server_database_ids
 }
 
-output "sql_database_name" {
-  description = "The SQL Database Name"
-  value       = module.mssql-server.primary_mssql_server_database_name
+output "sql_database_names" {
+  description = "Map of SQL Database names keyed by database name"
+  value       = module.mssql-server.primary_mssql_server_database_names
 }
 
 output "mssql_failover_group_id" {
-  description = "The ID of the Managed Instance Failover Group."
+  description = "The ID of the SQL Failover Group"
   value       = module.mssql-server.mssql_failover_group_id
 }

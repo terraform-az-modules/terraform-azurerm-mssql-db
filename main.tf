@@ -1,4 +1,3 @@
-data "azurerm_client_config" "current" {}
 ##-----------------------------------------------------------------------------
 # Standard Tagging Module – Applies standard tags to all resources for traceability
 ##-----------------------------------------------------------------------------
@@ -210,107 +209,112 @@ resource "azurerm_mssql_server_microsoft_support_auditing_policy" "secondary" {
 #--------------------------------------------------------------------
 # SQL Database creation - Default edition:"Standard" and objective:"S1"
 #--------------------------------------------------------------------
-
 resource "azurerm_mssql_database" "db" {
-  count                                                      = var.enabled && var.enable_mssql_db ? 1 : 0
-  name                                                       = format(var.resource_position_prefix ? "mssql-db-%s" : "%s-db-mssql", local.name)
-  server_id                                                  = azurerm_mssql_server.primary[0].id
-  auto_pause_delay_in_minutes                                = var.auto_pause_delay_in_minutes
-  create_mode                                                = var.create_mode
-  creation_source_database_id                                = var.creation_source_database_id
-  collation                                                  = var.collation
-  elastic_pool_id                                            = var.enable_elasticpool ? azurerm_mssql_elasticpool.elasticpool[0].id : var.elastic_pool_id
-  enclave_type                                               = var.enclave_type
-  geo_backup_enabled                                         = var.geo_backup_enabled
-  maintenance_configuration_name                             = var.maintenance_configuration_name
-  ledger_enabled                                             = var.ledger_enabled
-  license_type                                               = var.license_type
-  max_size_gb                                                = var.database_max_size_gb
-  min_capacity                                               = var.min_capacity
-  restore_point_in_time                                      = var.restore_point_in_time
-  recover_database_id                                        = var.recover_database_id
-  recovery_point_id                                          = var.recovery_point_id
-  restore_dropped_database_id                                = var.restore_dropped_database_id
-  restore_long_term_retention_backup_id                      = var.restore_long_term_retention_backup_id
-  read_replica_count                                         = var.read_replica_count
-  read_scale                                                 = var.read_scale
-  sample_name                                                = var.sample_name
-  sku_name                                                   = var.database_sku_name
-  storage_account_type                                       = var.storage_account_type
-  transparent_data_encryption_enabled                        = var.transparent_data_encryption_enabled
-  transparent_data_encryption_key_vault_key_id               = var.encryption ? azurerm_key_vault_key.main[0].id : var.transparent_data_encryption_key_vault_key_id
-  transparent_data_encryption_key_automatic_rotation_enabled = var.transparent_data_encryption_key_automatic_rotation_enabled
-  zone_redundant                                             = var.zone_redundant
-  secondary_type                                             = var.secondary_type
-  tags                                                       = module.labels.tags
+  for_each = var.enabled && var.enable_mssql_db ? var.databases : {}
+
+  name      = each.key
+  server_id = azurerm_mssql_server.primary[0].id
+
+  auto_pause_delay_in_minutes                                = try(each.value.auto_pause_delay_in_minutes, null)
+  create_mode                                                = try(each.value.create_mode, null)
+  creation_source_database_id                                = try(each.value.creation_source_database_id, null)
+  collation                                                  = try(each.value.collation, null)
+  elastic_pool_id                                            = try(each.value.use_elasticpool, false) ? azurerm_mssql_elasticpool.elasticpool[0].id : try(each.value.elastic_pool_id, null)
+  enclave_type                                               = try(each.value.enclave_type, null)
+  geo_backup_enabled                                         = try(each.value.geo_backup_enabled, null)
+  maintenance_configuration_name                             = try(each.value.maintenance_configuration_name, null)
+  ledger_enabled                                             = try(each.value.ledger_enabled, null)
+  license_type                                               = try(each.value.license_type, null)
+  max_size_gb                                                = try(each.value.max_size_gb, null)
+  min_capacity                                               = try(each.value.min_capacity, null)
+  restore_point_in_time                                      = try(each.value.restore_point_in_time, null)
+  recover_database_id                                        = try(each.value.recover_database_id, null)
+  recovery_point_id                                          = try(each.value.recovery_point_id, null)
+  restore_dropped_database_id                                = try(each.value.restore_dropped_database_id, null)
+  restore_long_term_retention_backup_id                      = try(each.value.restore_long_term_retention_backup_id, null)
+  read_replica_count                                         = try(each.value.read_replica_count, null)
+  read_scale                                                 = try(each.value.read_scale, null)
+  sample_name                                                = try(each.value.sample_name, null)
+  sku_name                                                   = try(each.value.sku_name, null)
+  storage_account_type                                       = try(each.value.storage_account_type, null)
+  transparent_data_encryption_enabled                        = try(each.value.transparent_data_encryption_enabled, null)
+  transparent_data_encryption_key_vault_key_id               = var.encryption ? azurerm_key_vault_key.main[0].id : try(each.value.transparent_data_encryption_key_vault_key_id, var.transparent_data_encryption_key_vault_key_id)
+  transparent_data_encryption_key_automatic_rotation_enabled = try(each.value.transparent_data_encryption_key_automatic_rotation_enabled, null)
+  zone_redundant                                             = try(each.value.zone_redundant, null)
+  secondary_type                                             = try(each.value.secondary_type, null)
+
+  tags = merge(
+    module.labels.tags,
+    try(each.value.tags, {})
+  )
 
   dynamic "import" {
-    for_each = var.import == null ? [] : [var.import]
+    for_each = try(each.value.import, null) == null ? [] : [each.value.import]
     content {
       storage_uri                  = import.value.storage_uri
-      storage_key                  = import.value.storage_key
-      storage_key_type             = import.value.storage_key_type
+      storage_key                  = try(import.value.storage_key, null)
+      storage_key_type             = try(import.value.storage_key_type, null)
       administrator_login          = import.value.administrator_login
-      administrator_login_password = import.value.administrator_login_password
+      administrator_login_password = try(import.value.administrator_login_password, null)
       authentication_type          = import.value.authentication_type
-      storage_account_id           = import.value.storage_account_id
+      storage_account_id           = try(import.value.storage_account_id, null)
     }
   }
 
   dynamic "threat_detection_policy" {
-    for_each = var.threat_detection_policy == null ? [] : [var.threat_detection_policy]
+    for_each = try(each.value.threat_detection_policy, null) == null ? [] : [each.value.threat_detection_policy]
     content {
-      state                      = threat_detection_policy.value.state
-      disabled_alerts            = threat_detection_policy.value.disabled_alerts
-      email_account_admins       = threat_detection_policy.value.email_account_admins
-      email_addresses            = threat_detection_policy.value.email_addresses
-      retention_days             = threat_detection_policy.value.retention_days
-      storage_account_access_key = threat_detection_policy.value.storage_account_access_key
-      storage_endpoint           = threat_detection_policy.value.storage_endpoint
+      state                      = try(threat_detection_policy.value.state, null)
+      disabled_alerts            = try(threat_detection_policy.value.disabled_alerts, null)
+      email_account_admins       = try(threat_detection_policy.value.email_account_admins, null)
+      email_addresses            = try(threat_detection_policy.value.email_addresses, null)
+      retention_days             = try(threat_detection_policy.value.retention_days, null)
+      storage_account_access_key = try(threat_detection_policy.value.storage_account_access_key, null)
+      storage_endpoint           = try(threat_detection_policy.value.storage_endpoint, null)
     }
   }
 
   dynamic "long_term_retention_policy" {
-    for_each = var.long_term_retention_policy == null ? [] : [var.long_term_retention_policy]
+    for_each = try(each.value.long_term_retention_policy, null) == null ? [] : [each.value.long_term_retention_policy]
     content {
-      weekly_retention          = long_term_retention_policy.value.weekly_retention
-      monthly_retention         = long_term_retention_policy.value.monthly_retention
-      yearly_retention          = long_term_retention_policy.value.yearly_retention
-      week_of_year              = long_term_retention_policy.value.week_of_year
-      immutable_backups_enabled = long_term_retention_policy.value.immutable_backups_enabled
+      weekly_retention          = try(long_term_retention_policy.value.weekly_retention, null)
+      monthly_retention         = try(long_term_retention_policy.value.monthly_retention, null)
+      yearly_retention          = try(long_term_retention_policy.value.yearly_retention, null)
+      week_of_year              = try(long_term_retention_policy.value.week_of_year, null)
+      immutable_backups_enabled = try(long_term_retention_policy.value.immutable_backups_enabled, null)
     }
   }
 
   dynamic "short_term_retention_policy" {
-    for_each = var.short_term_retention_policy == null ? [] : [var.short_term_retention_policy]
+    for_each = try(each.value.short_term_retention_policy, null) == null ? [] : [each.value.short_term_retention_policy]
     content {
-      retention_days           = short_term_retention_policy.value.retention_days
-      backup_interval_in_hours = short_term_retention_policy.value.backup_interval_in_hours
+      retention_days           = try(short_term_retention_policy.value.retention_days, null)
+      backup_interval_in_hours = try(short_term_retention_policy.value.backup_interval_in_hours, null)
     }
   }
 
   dynamic "identity" {
     for_each = var.encryption ? [1] : []
-
     content {
       type         = "UserAssigned"
       identity_ids = [azurerm_user_assigned_identity.identity[0].id]
     }
   }
 
-  # prevent the possibility of accidental data loss
   depends_on = [azurerm_mssql_server.primary]
 }
 
 resource "azurerm_mssql_database_extended_auditing_policy" "primary" {
-  count                                   = var.enabled && var.enable_database_extended_auditing_policy ? 1 : 0
-  database_id                             = azurerm_mssql_database.db[0].id
+  for_each = var.enabled && var.enable_database_extended_auditing_policy ? azurerm_mssql_database.db : {}
+
+  database_id                             = each.value.id
   storage_endpoint                        = var.storage_account_blob_endpoint
   storage_account_access_key              = var.storage_account_access_key
   storage_account_access_key_is_secondary = var.storage_account_access_key_is_secondary
   retention_in_days                       = var.log_retention_days
   log_monitoring_enabled                  = var.enable_log_monitoring
-  depends_on                              = [azurerm_mssql_database.db]
+
+  depends_on = [azurerm_mssql_database.db]
 }
 
 #-----------------------------------------------------------------------------------------------
@@ -361,9 +365,10 @@ resource "azurerm_mssql_server_vulnerability_assessment" "va_primary" {
 }
 
 resource "azurerm_mssql_database_vulnerability_assessment_rule_baseline" "db_va_primary" {
-  count                              = var.enabled && var.enable_vulnerability_assessment_rule_baseline ? 1 : 0
+  for_each = var.enabled && var.enable_vulnerability_assessment_rule_baseline ? azurerm_mssql_database.db : {}
+
   server_vulnerability_assessment_id = azurerm_mssql_server_vulnerability_assessment.va_primary[0].id
-  database_name                      = azurerm_mssql_database.db[0].name
+  database_name                      = each.value.name
   rule_id                            = var.rule_id
   baseline_name                      = var.baseline_name
 
@@ -392,12 +397,11 @@ resource "azurerm_mssql_server_vulnerability_assessment" "va_secondary" {
 ##---------------------------------------------------------------------------------------------
 ## Job
 ##---------------------------------------------------------------------------------------------
-
 resource "azurerm_mssql_job_agent" "ja_primary" {
   count       = var.enabled && var.enable_job_agent ? 1 : 0
   name        = format(var.resource_position_prefix ? "mssql-ja-%s" : "%s-ja-mssql", local.name)
   location    = var.location
-  database_id = azurerm_mssql_database.db[0].id
+  database_id = azurerm_mssql_database.db[var.job_agent_database_key].id
   sku         = var.ja_sku
 }
 
@@ -412,21 +416,18 @@ resource "azurerm_mssql_job_credential" "jc_primary" {
 }
 
 resource "azurerm_mssql_job_target_group" "jtg_primary" {
-  for_each     = var.enabled && var.job_target_group != null ? var.job_target_group : {}
+  for_each = var.enabled && var.job_target_group != null ? var.job_target_group : {}
+
   name         = each.key
   job_agent_id = azurerm_mssql_job_agent.ja_primary[0].id
 
   dynamic "job_target" {
     for_each = each.value.databases
     content {
-      server_name     = azurerm_mssql_server.primary[0].name
-      database_name   = job_target.value
-      membership_type = each.value.membership_type
-
-      # Only add credential if provided
+      server_name       = azurerm_mssql_server.primary[0].name
+      database_name     = job_target.value
+      membership_type   = each.value.membership_type
       job_credential_id = length(try(each.value.job_credential_id, "")) > 0 ? each.value.job_credential_id : null
-
-      # Only add elastic_pool_name if provided
       elastic_pool_name = length(try(each.value.elastic_pool_name, "")) > 0 ? each.value.elastic_pool_name : null
     }
   }
@@ -466,7 +467,7 @@ resource "azurerm_mssql_job_step" "js_primary" {
   dynamic "output_target" {
     for_each = each.value.output_target != null ? each.value.output_target : {}
     content {
-      mssql_database_id = azurerm_mssql_database.db[0].id
+      mssql_database_id = azurerm_mssql_database.db[output_target.value.database_key].id
       table_name        = output_target.value.table_name
       job_credential_id = try(output_target.value.job_credential_id, null)
       schema_name       = try(output_target.value.schema_name, "dbo")
@@ -477,11 +478,11 @@ resource "azurerm_mssql_job_step" "js_primary" {
 #-----------------------------------------------------------------------------------------------
 # Create and initialize a Microsoft SQL Server database using sqlcmd utility - Default is "false"
 #-----------------------------------------------------------------------------------------------
-
 resource "null_resource" "create_sql" {
-  count = var.initialize_sql_script_execution ? 1 : 0
+  for_each = var.initialize_sql_script_execution ? azurerm_mssql_database.db : {}
+
   provisioner "local-exec" {
-    command = "sqlcmd -I -U ${azurerm_mssql_server.primary[0].administrator_login} -P ${azurerm_mssql_server.primary[0].administrator_login_password} -S ${azurerm_mssql_server.primary[0].fully_qualified_domain_name} -d ${azurerm_mssql_database.db[0].name} -i ${var.sqldb_init_script_file} -o ${format("%s.log", replace(var.sqldb_init_script_file, ".sql", ""))}"
+    command = "sqlcmd -I -U ${azurerm_mssql_server.primary[0].administrator_login} -P ${azurerm_mssql_server.primary[0].administrator_login_password} -S ${azurerm_mssql_server.primary[0].fully_qualified_domain_name} -d ${each.value.name} -i ${var.sqldb_init_script_file} -o ${format("%s-%s.log", replace(var.sqldb_init_script_file, ".sql", ""), each.key)}"
   }
 }
 
@@ -587,6 +588,11 @@ resource "azurerm_private_endpoint" "pep_primary" {
     subresource_names              = ["sqlServer"]
   }
 
+  private_dns_zone_group {
+    name                 = var.resource_position_prefix ? format("dns-zone-group-%s", local.name) : format("%s-dns-zone-group", local.name)
+    private_dns_zone_ids = var.private_dns_zone_ids
+  }
+
   lifecycle {
     ignore_changes = [
       tags,
@@ -608,6 +614,11 @@ resource "azurerm_private_endpoint" "pep_secondary" {
     subresource_names              = ["sqlServer"]
   }
 
+  private_dns_zone_group {
+    name                 = var.resource_position_prefix ? format("dns-zone-group-%s", local.name) : format("%s-dns-zone-group", local.name)
+    private_dns_zone_ids = var.private_dns_zone_ids
+  }
+
   lifecycle {
     ignore_changes = [
       tags,
@@ -618,12 +629,12 @@ resource "azurerm_private_endpoint" "pep_secondary" {
 #------------------------------------------------------------------
 # azurerm monitoring diagnostics  - Default is "false"
 #------------------------------------------------------------------
+resource "azurerm_monitor_diagnostic_setting" "mssql_db_diag" {
+  for_each = var.enabled && var.enable_diagnostic ? azurerm_mssql_database.db : {}
 
-resource "azurerm_monitor_diagnostic_setting" "web_app_diag" {
-  count = var.enabled && var.enable_diagnostic ? 1 : 0
-  name  = var.resource_position_prefix ? format("Ds-mssql-%s", local.name) : format("%s-mssql-Ds", local.name)
+  name = var.resource_position_prefix ? format("Ds-mssql-%s-%s", local.name, each.key) : format("%s-%s-mssql-Ds", local.name, each.key)
 
-  target_resource_id             = azurerm_mssql_database.db[0].id
+  target_resource_id             = each.value.id
   storage_account_id             = var.storage_account_id
   log_analytics_workspace_id     = var.log_analytics_workspace_id
   eventhub_name                  = var.eventhub_name
@@ -650,11 +661,11 @@ resource "azurerm_monitor_diagnostic_setting" "web_app_diag" {
 ##---------------------------------------------------------
 ## Azure SQL Failover Group - Default is "false"
 ##---------------------------------------------------------
-
 resource "azurerm_mssql_failover_group" "fog" {
-  count                                     = var.enabled && var.enable_failover_group ? 1 : 0
+  count = var.enabled && var.enable_failover_group ? 1 : 0
+
   name                                      = format(var.resource_position_prefix ? "mssql-server-fog-%s" : "%s-fog-server-mssql", local.name)
-  databases                                 = [azurerm_mssql_database.db[0].id]
+  databases                                 = [for db in values(azurerm_mssql_database.db) : db.id]
   server_id                                 = azurerm_mssql_server.primary[0].id
   readonly_endpoint_failover_policy_enabled = var.readonly_endpoint_failover_policy_enabled
 
@@ -666,7 +677,15 @@ resource "azurerm_mssql_failover_group" "fog" {
     mode          = var.read_write_endpoint_failover_policy.mode
     grace_minutes = var.read_write_endpoint_failover_policy.grace_minutes
   }
-  depends_on = [azurerm_mssql_server.primary, azurerm_mssql_server.secondary, azurerm_mssql_database.db, azurerm_key_vault_key.main, azurerm_role_assignment.sql_cmk_key_data, azurerm_mssql_server_transparent_data_encryption.tde]
+
+  depends_on = [
+    azurerm_mssql_server.primary,
+    azurerm_mssql_server.secondary,
+    azurerm_mssql_database.db,
+    azurerm_key_vault_key.main,
+    azurerm_role_assignment.sql_cmk_key_data,
+    azurerm_mssql_server_transparent_data_encryption.tde
+  ]
 }
 
 ##------------------------------------------------------------------------

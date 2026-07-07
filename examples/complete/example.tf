@@ -91,7 +91,7 @@ module "private_dns_zone" {
   label_order         = local.label_order
   private_dns_config = [
     {
-      resource_type = "key_vault"
+      resource_type = "sql_server"
       vnet_ids      = [module.vnet.vnet_id]
     }
   ]
@@ -132,8 +132,8 @@ module "vault" {
   location                      = module.resource_group.resource_group_location
   subnet_id                     = module.subnet.subnet_ids.subnet1
   public_network_access_enabled = true
-  sku_name                      = "premium"
-  private_dns_zone_ids          = module.private_dns_zone.private_dns_zone_ids.key_vault
+  sku_name                      = "standard"
+  enable_private_endpoint       = false
   soft_delete_retention_days    = 7
   network_acls = {
     bypass         = "AzureServices"
@@ -156,23 +156,35 @@ module "vault" {
 ##-----------------------------------------------------------------------------
 
 module "mssql-server" {
-  depends_on                                 = [module.resource_group, module.vnet, module.vault]
+  # depends_on                                 = [module.resource_group, module.vnet, module.vault]
   source                                     = "../.."
   name                                       = local.name
   environment                                = local.environment
   label_order                                = local.label_order
   resource_group_name                        = module.resource_group.resource_group_name
   location                                   = module.resource_group.resource_group_location
-  encryption                                 = true
+  encryption                                 = false
   sql_server_version                         = "12.0"
   administrator_login                        = "mssqladmin"
   enable_sql_server_extended_auditing_policy = true
   storage_account_blob_endpoint              = module.storage-account.storage_account_primary_blob_endpoint
   storage_account_access_key                 = module.storage-account.storage_primary_access_key
-  key_vault_id                               = module.vault.id
-  enable_mssql_db                            = true
-  enable_elasticpool                         = true
-  elasticpool_max_size_gb                    = 4.8828125
+  # key_vault_id                               = module.vault.id
+  enable_mssql_db = true
+  databases = {
+    appdb = {
+      sku_name                            = "Basic"
+      max_size_gb                         = 2
+      geo_backup_enabled                  = false
+      transparent_data_encryption_enabled = true
+    }
+    reportingdb = {
+      sku_name    = "Basic"
+      max_size_gb = 2
+    }
+  }
+  enable_elasticpool      = true
+  elasticpool_max_size_gb = 4.8828125
   sku = {
     name     = "BasicPool"
     tier     = "Basic"
@@ -185,7 +197,8 @@ module "mssql-server" {
   }
   enable_dns_alias           = true
   enable_private_endpoint    = true
-  private_endpoint_subnet_id = module.subnet.subnet_ids.subnet1 # Use private endpoint subnet
+  private_endpoint_subnet_id = module.subnet.subnet_ids.subnet1
+  private_dns_zone_ids       = [module.private_dns_zone.private_dns_zone_ids.sql_server]
   enable_diagnostic          = true
   enable_log_monitoring      = false
   log_analytics_workspace_id = module.log-analytics.workspace_id

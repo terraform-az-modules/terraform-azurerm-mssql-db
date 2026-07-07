@@ -97,7 +97,6 @@ module "private_dns_zone" {
   ]
 }
 
-
 # ------------------------------------------------------------------------------
 # Key Vault
 # ------------------------------------------------------------------------------
@@ -113,7 +112,7 @@ module "vault" {
   public_network_access_enabled = true
   private_dns_zone_ids          = module.private_dns_zone.private_dns_zone_ids.key_vault
   soft_delete_retention_days    = 7
-  sku_name                      = "premium"
+  sku_name                      = "standard"
   network_acls = {
     bypass         = "AzureServices"
     default_action = "Allow"
@@ -131,28 +130,45 @@ module "vault" {
 }
 
 module "mssql-server" {
-  depends_on            = [module.resource_group, module.vnet, module.vault]
-  source                = "../.."
-  name                  = local.name
-  environment           = local.environment
-  label_order           = local.label_order
-  resource_group_name   = module.resource_group.resource_group_name
-  location              = module.resource_group.resource_group_location
-  encryption            = true
-  sql_server_version    = "12.0"
-  administrator_login   = "mssqladmin"
-  key_vault_id          = module.vault.id
-  enable_mssql_db       = true
+  depends_on          = [module.resource_group, module.vnet, module.vault]
+  source              = "../.."
+  name                = local.name
+  environment         = local.environment
+  label_order         = local.label_order
+  resource_group_name = module.resource_group.resource_group_name
+  location            = module.resource_group.resource_group_location
+  encryption          = true
+  sql_server_version  = "12.0"
+  administrator_login = "mssqladmin"
+  key_vault_id        = module.vault.id
+  enable_mssql_db     = true
+
+  databases = {
+    appdb = { #database key
+      sku_name                            = "Basic"
+      max_size_gb                         = 2
+      geo_backup_enabled                  = false
+      transparent_data_encryption_enabled = true
+      sku_name                            = "Basic"
+    }
+  }
+
   enable_failover_group = true
   read_write_endpoint_failover_policy = {
     mode          = "Automatic"
     grace_minutes = 60
   }
+
   enable_private_endpoint            = true
   private_endpoint_subnet_id         = module.subnet.subnet_ids.subnet1
   enable_transparent_data_encryption = true
-  enable_diagnostic                  = true
-  enable_log_monitoring              = true
-  log_analytics_workspace_id         = module.log-analytics.workspace_id
+
+  enable_diagnostic          = true
+  enable_log_monitoring      = true
+  log_analytics_workspace_id = module.log-analytics.workspace_id
+
+  ## If you enable -- enable_job_agent = true, you must also provide one database key for the job agent host DB
+  enable_job_agent       = true
+  job_agent_database_key = "appdb"
 }
 

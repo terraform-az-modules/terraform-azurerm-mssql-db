@@ -28,7 +28,7 @@ output "secondary_mssql_server_fqdn" {
 }
 
 output "secondary_mssql_server_rdd_ids" {
-  description = "A list of dropped restorable database IDs on the  Secondary server."
+  description = "A list of dropped restorable database IDs on the secondary server."
   value       = azurerm_mssql_server.secondary[*].restorable_dropped_database_ids
 }
 
@@ -44,13 +44,13 @@ output "primary_mssql_server_admin_password" {
   sensitive   = true
 }
 
-output "primary_mssql_server_database_id" {
-  description = "The SQL Database ID"
+output "primary_mssql_server_database_ids" {
+  description = "Map of MSSQL database IDs keyed by database name."
   value       = { for k, v in azurerm_mssql_database.db : k => v.id }
 }
 
-output "primary_mssql_server_database_name" {
-  description = "The SQL Database Name"
+output "primary_mssql_server_database_names" {
+  description = "Map of MSSQL database names keyed by database name."
   value       = { for k, v in azurerm_mssql_database.db : k => v.name }
 }
 
@@ -64,9 +64,9 @@ output "primary_mssql_server_dns_alias_record_set" {
   value       = try(azurerm_mssql_server_dns_alias.dns[0].dns_record, null)
 }
 
-output "primary_mssql_server_extended_auditing_policy_id" {
-  description = "The ID of the Primary MS SQL Server Extended Auditing Policy."
-  value       = try(azurerm_mssql_server_extended_auditing_policy.primary[0].id, null)
+output "primary_mssql_database_extended_auditing_policy_ids" {
+  description = "Map of DB extended auditing policy IDs keyed by database name."
+  value       = { for k, v in azurerm_mssql_database_extended_auditing_policy.primary : k => v.id }
 }
 
 output "secondary_mssql_server_extended_auditing_policy_id" {
@@ -94,11 +94,6 @@ output "primary_mssql_server_tde_id" {
   value       = azurerm_mssql_server_transparent_data_encryption.tde[*].id
 }
 
-output "primary_mssql_server_vulnerability_assessment_id" {
-  description = "The ID of the Primary MS SQL Server Vulnerability Assessment."
-  value       = azurerm_mssql_server_vulnerability_assessment.va_primary[*].id
-}
-
 output "secondary_mssql_server_vulnerability_assessment_id" {
   description = "The ID of the Secondary MS SQL Server Vulnerability Assessment."
   value       = azurerm_mssql_server_vulnerability_assessment.va_secondary[*].id
@@ -110,13 +105,13 @@ output "secondary_mssql_server_security_alert_policy_id" {
 }
 
 output "primary_mssql_database_extended_auditing_policy_id" {
-  description = "The ID of the MS SQL Database Extended Auditing Policy."
-  value       = try(azurerm_mssql_database_extended_auditing_policy.primary)
+  description = "Map of DB extended auditing policy objects keyed by database name."
+  value       = azurerm_mssql_database_extended_auditing_policy.primary
 }
 
-output "primary_mssql_database_vulnerability_assessment_rule_baseline_id" {
-  description = "The ID of the Database Vulnerability Assessment Rule Baseline."
-  value       = azurerm_mssql_database_vulnerability_assessment_rule_baseline.db_va_primary[*].id
+output "primary_mssql_database_vulnerability_assessment_rule_baseline_ids" {
+  description = "Map of DB VA rule baseline IDs keyed by database name."
+  value       = { for k, v in azurerm_mssql_database_vulnerability_assessment_rule_baseline.db_va_primary : k => v.id }
 }
 
 output "mssql_elasticpool_id" {
@@ -181,10 +176,15 @@ output "mssql_failover_group_id" {
 
 output "mssql_failover_group_partner_server" {
   description = "Map of Azure SQL failover group names to their corresponding partner (secondary) SQL server details."
-  value       = { for k, v in azurerm_mssql_failover_group.fog[*] : k => v.partner_server }
+  value       = { for k, v in azurerm_mssql_failover_group.fog : k => v.partner_server }
 }
 
 output "primary_mssql_server_private_endpoint" {
-  description = "id of the Primary SQL server Private Endpoint"
+  description = "ID of the primary SQL server private endpoint."
   value       = element(concat(azurerm_private_endpoint.pep_primary[*].id, [""]), 0)
+}
+
+output "secondary_mssql_server_private_endpoint" {
+  description = "ID of the secondary SQL server private endpoint."
+  value       = element(concat(azurerm_private_endpoint.pep_secondary[*].id, [""]), 0)
 }
