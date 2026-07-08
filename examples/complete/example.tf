@@ -167,6 +167,7 @@ module "mssql-server" {
   sql_server_version                         = "12.0"
   administrator_login                        = "mssqladmin"
   enable_sql_server_extended_auditing_policy = true
+  public_network_access_enabled              = true
   storage_account_blob_endpoint              = module.storage-account.storage_account_primary_blob_endpoint
   storage_account_access_key                 = module.storage-account.storage_primary_access_key
   encryption                                 = false # Pass KV ID when encryption is enabled

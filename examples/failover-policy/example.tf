@@ -130,18 +130,19 @@ module "vault" {
 }
 
 module "mssql-server" {
-  depends_on          = [module.resource_group, module.vnet, module.vault]
-  source              = "../.."
-  name                = local.name
-  environment         = local.environment
-  label_order         = local.label_order
-  resource_group_name = module.resource_group.resource_group_name
-  location            = module.resource_group.resource_group_location
-  encryption          = true
-  sql_server_version  = "12.0"
-  administrator_login = "mssqladmin"
-  key_vault_id        = module.vault.id
-  enable_mssql_db     = true
+  depends_on                    = [module.resource_group, module.vnet, module.vault]
+  source                        = "../.."
+  name                          = local.name
+  environment                   = local.environment
+  label_order                   = local.label_order
+  resource_group_name           = module.resource_group.resource_group_name
+  location                      = module.resource_group.resource_group_location
+  encryption                    = true
+  sql_server_version            = "12.0"
+  administrator_login           = "mssqladmin"
+  key_vault_id                  = module.vault.id
+  public_network_access_enabled = false
+  enable_mssql_db               = true
 
   databases = {
     appdb = { #database key
@@ -149,7 +150,6 @@ module "mssql-server" {
       max_size_gb                         = 2
       geo_backup_enabled                  = false
       transparent_data_encryption_enabled = true
-      sku_name                            = "Basic"
     }
   }
 

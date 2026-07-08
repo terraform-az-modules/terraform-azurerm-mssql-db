@@ -76,7 +76,7 @@ resource "azurerm_mssql_server" "primary" {
   location                                     = var.location
   version                                      = var.sql_server_version
   administrator_login                          = var.azuread_administrator == null ? var.administrator_login : null
-  administrator_login_password                 = var.azuread_administrator == null ? (var.administrator_login_password != null ? var.administrator_login_password : random_password.main[0].result) : null
+  administrator_login_password                 = var.azuread_administrator == null ? (var.administrator_login_password != null ? var.administrator_login_password : one(random_password.main[*].result)) : null
   administrator_login_password_wo              = var.administrator_login_password_wo
   administrator_login_password_wo_version      = var.administrator_login_password_wo_version
   connection_policy                            = var.connection_policy
@@ -144,8 +144,8 @@ resource "azurerm_mssql_server" "secondary" {
   resource_group_name                          = var.resource_group_name
   location                                     = var.secondary_sql_server_location == null ? var.location : var.secondary_sql_server_location
   version                                      = var.sql_server_version
-  administrator_login                          = var.administrator_login
-  administrator_login_password                 = var.azuread_administrator == null ? (var.administrator_login_password != null ? var.administrator_login_password : random_password.main[0].result) : null
+  administrator_login                          = var.azuread_administrator == null ? var.administrator_login : null
+  administrator_login_password                 = var.azuread_administrator == null ? (var.administrator_login_password != null ? var.administrator_login_password : one(random_password.main[*].result)) : null
   administrator_login_password_wo              = var.administrator_login_password_wo
   administrator_login_password_wo_version      = var.administrator_login_password_wo_version
   connection_policy                            = var.connection_policy
@@ -348,7 +348,7 @@ resource "azurerm_mssql_server_security_alert_policy" "sap_secondary" {
 }
 
 resource "azurerm_mssql_server_vulnerability_assessment" "va_primary" {
-  count                           = var.enabled && var.enable_vulnerability_assessment ? 1 : 0
+  count                           = var.enabled && var.enable_vulnerability_assessment && var.enable_security_alert_policy ? 1 : 0
   server_security_alert_policy_id = azurerm_mssql_server_security_alert_policy.sap_primary[0].id
   storage_container_path          = var.storage_container_path
   storage_account_access_key      = var.storage_account_access_key
@@ -365,7 +365,7 @@ resource "azurerm_mssql_server_vulnerability_assessment" "va_primary" {
 }
 
 resource "azurerm_mssql_database_vulnerability_assessment_rule_baseline" "db_va_primary" {
-  for_each = var.enabled && var.enable_vulnerability_assessment_rule_baseline ? azurerm_mssql_database.db : {}
+  for_each = var.enabled && var.enable_vulnerability_assessment_rule_baseline && var.enable_vulnerability_assessment && var.enable_security_alert_policy ? azurerm_mssql_database.db : {}
 
   server_vulnerability_assessment_id = azurerm_mssql_server_vulnerability_assessment.va_primary[0].id
   database_name                      = each.value.name
@@ -378,7 +378,7 @@ resource "azurerm_mssql_database_vulnerability_assessment_rule_baseline" "db_va_
 }
 
 resource "azurerm_mssql_server_vulnerability_assessment" "va_secondary" {
-  count                           = var.enabled && var.enable_vulnerability_assessment && var.enable_failover_group ? 1 : 0
+  count                           = var.enabled && var.enable_vulnerability_assessment && var.enable_failover_group && var.enable_security_alert_policy ? 1 : 0
   server_security_alert_policy_id = azurerm_mssql_server_security_alert_policy.sap_secondary[0].id
   storage_container_path          = var.storage_container_path
   storage_account_access_key      = var.storage_account_access_key
@@ -406,7 +406,7 @@ resource "azurerm_mssql_job_agent" "ja_primary" {
 }
 
 resource "azurerm_mssql_job_credential" "jc_primary" {
-  for_each            = var.enabled && var.job_credentials != null ? var.job_credentials : {}
+  for_each            = var.enabled && var.enable_job_agent && var.job_credentials != null ? var.job_credentials : {}
   name                = each.key
   job_agent_id        = azurerm_mssql_job_agent.ja_primary[0].id
   username            = each.value.username
@@ -416,7 +416,7 @@ resource "azurerm_mssql_job_credential" "jc_primary" {
 }
 
 resource "azurerm_mssql_job_target_group" "jtg_primary" {
-  for_each = var.enabled && var.job_target_group != null ? var.job_target_group : {}
+  for_each = var.enabled && var.enable_job_agent && var.job_target_group != null ? var.job_target_group : {}
 
   name         = each.key
   job_agent_id = azurerm_mssql_job_agent.ja_primary[0].id
@@ -434,14 +434,14 @@ resource "azurerm_mssql_job_target_group" "jtg_primary" {
 }
 
 resource "azurerm_mssql_job" "job_primary" {
-  for_each     = var.enabled && var.job != null ? var.job : {}
+  for_each     = var.enabled && var.enable_job_agent && var.job != null ? var.job : {}
   name         = each.key
   job_agent_id = azurerm_mssql_job_agent.ja_primary[0].id
   description  = each.value.description
 }
 
 resource "azurerm_mssql_job_schedule" "js_primary" {
-  for_each   = var.enabled && var.job_schedule != null ? var.job_schedule : {}
+  for_each   = var.enabled && var.enable_job_agent && var.job_schedule != null ? var.job_schedule : {}
   job_id     = azurerm_mssql_job.job_primary[each.key].id
   type       = each.value.schedule_type
   enabled    = each.value.schedule_enable
@@ -451,7 +451,7 @@ resource "azurerm_mssql_job_schedule" "js_primary" {
 }
 
 resource "azurerm_mssql_job_step" "js_primary" {
-  for_each                          = var.enabled && var.job_step != null ? var.job_step : {}
+  for_each                          = var.enabled && var.enable_job_agent && var.job_step != null ? var.job_step : {}
   name                              = each.key
   job_id                            = azurerm_mssql_job.job_primary[each.key].id
   job_step_index                    = each.value.job_step_index
@@ -701,7 +701,7 @@ resource "azurerm_mssql_virtual_network_rule" "primary" {
 }
 
 resource "azurerm_mssql_virtual_network_rule" "secondary" {
-  count                                = var.enabled && var.enable_virtual_network_rule ? 1 : 0
+  count                                = var.enabled && var.enable_virtual_network_rule && var.enable_failover_group ? 1 : 0
   name                                 = format(var.resource_position_prefix ? "mssql-vnet-rule-%s" : "%s-vnet-rule-mssql", local.name)
   server_id                            = azurerm_mssql_server.secondary[0].id
   subnet_id                            = var.vnet_rule_subnet_id

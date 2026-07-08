@@ -28,7 +28,7 @@ EOT
 variable "enabled" {
   type        = bool
   default     = true
-  description = "Enable or disable creation of all Logic App resources."
+  description = "Enable or disable creation of all MSSQL resources."
 }
 
 variable "resource_group_name" {
@@ -67,7 +67,7 @@ variable "managedby" {
 
 variable "repository" {
   type        = string
-  default     = "https://github.com/terraform-az-modules/terraform-azurerm-logic-app"
+  default     = "https://github.com/terraform-az-modules/terraform-azurerm-mssql-db"
   description = "Repository URL or identifier for traceability."
 
   validation {
@@ -188,7 +188,7 @@ variable "transparent_data_encryption_key_vault_key_id" {
 
 variable "public_network_access_enabled" {
   type        = bool
-  default     = true
+  default     = false
   description = "Whether public network access is allowed for this server."
 }
 
@@ -277,7 +277,7 @@ variable "storage_account_access_key_is_secondary" {
 
 variable "log_retention_days" {
   type        = string
-  default     = "30"
+  default     = "7"
   description = "Specifies the number of days to keep in the Threat Detection audit logs"
 }
 
@@ -760,7 +760,7 @@ variable "per_database_settings" {
 variable "enable_diagnostic" {
   type        = bool
   default     = false
-  description = "Enable diagnostic settings for Linux Web App."
+  description = "Enable diagnostic settings for MSSQL Database."
 }
 
 variable "storage_account_id" {
@@ -778,7 +778,7 @@ variable "log_analytics_workspace_id" {
 variable "eventhub_name" {
   type        = string
   default     = null
-  description = "Eventhub Name to pass it to destination details of diagnosys setting of NSG."
+  description = "Eventhub name to pass to destination details of diagnostic settings."
 }
 
 variable "eventhub_authorization_rule_id" {
