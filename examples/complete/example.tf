@@ -22,7 +22,7 @@ module "resource_group" {
   environment              = local.environment
   label_order              = local.label_order
   location                 = local.location
-  resource_position_prefix = false
+  resource_position_prefix = true
 }
 
 ##----------------------------------------------------------------------------- 
@@ -161,14 +161,15 @@ module "mssql-server" {
   name                                       = local.name
   environment                                = local.environment
   label_order                                = local.label_order
+  resource_position_prefix                   = true
   resource_group_name                        = module.resource_group.resource_group_name
   location                                   = module.resource_group.resource_group_location
-  encryption                                 = false
   sql_server_version                         = "12.0"
   administrator_login                        = "mssqladmin"
   enable_sql_server_extended_auditing_policy = true
   storage_account_blob_endpoint              = module.storage-account.storage_account_primary_blob_endpoint
   storage_account_access_key                 = module.storage-account.storage_primary_access_key
+  encryption                                 = false # Pass KV ID when encryption is enabled
   # key_vault_id                               = module.vault.id
   enable_mssql_db = true
   databases = {
@@ -183,8 +184,8 @@ module "mssql-server" {
       max_size_gb = 2
     }
   }
-  enable_elasticpool      = true
-  elasticpool_max_size_gb = 4.8828125
+  enable_elasticpool = false
+  # elasticpool_max_size_gb = 4.8828125 
   sku = {
     name     = "BasicPool"
     tier     = "Basic"

@@ -71,7 +71,7 @@ resource "azurerm_role_assignment" "sql_cmk_key_data" {
 #tfsec:ignore:azure-database-enable-audit      ### No argument-reference found on terraform registry
 resource "azurerm_mssql_server" "primary" {
   count                                        = var.enabled ? 1 : 0
-  name                                         = format(var.resource_position_prefix ? "mssql-primary-%s" : "%s-primary-mssql", local.name)
+  name                                         = var.enable_failover_group ? (var.resource_position_prefix ? format("mssql-primary-%s", local.name) : format("%s-primary-mssql", local.name)) : (var.resource_position_prefix ? format("mssql-%s", local.name) : format("%s-mssql", local.name))
   resource_group_name                          = var.resource_group_name
   location                                     = var.location
   version                                      = var.sql_server_version
@@ -576,20 +576,20 @@ resource "azurerm_mssql_elasticpool" "elasticpool" {
 
 resource "azurerm_private_endpoint" "pep_primary" {
   count               = var.enabled && var.enable_private_endpoint ? 1 : 0
-  name                = format("pe-mssql-primary-%s", azurerm_mssql_server.primary[0].name)
+  name                = format("pe-%s", azurerm_mssql_server.primary[0].name)
   location            = var.location
   resource_group_name = var.resource_group_name
   subnet_id           = var.private_endpoint_subnet_id
   tags                = module.labels.tags
   private_service_connection {
-    name                           = var.resource_position_prefix ? format("psc-mssql-primary-%s", local.name) : format("%s-psc-mssql-primary", local.name)
+    name                           = var.resource_position_prefix ? format("psc-%s", azurerm_mssql_server.primary[0].name) : format("%s-psc", azurerm_mssql_server.primary[0].name)
     is_manual_connection           = false
     private_connection_resource_id = azurerm_mssql_server.primary[0].id
     subresource_names              = ["sqlServer"]
   }
 
   private_dns_zone_group {
-    name                 = var.resource_position_prefix ? format("dns-zone-group-%s", local.name) : format("%s-dns-zone-group", local.name)
+    name                 = var.resource_position_prefix ? format("dns-zone-group-%s", azurerm_mssql_server.primary[0].name) : format("%s-dns-zone-group", azurerm_mssql_server.primary[0].name)
     private_dns_zone_ids = var.private_dns_zone_ids
   }
 
@@ -602,20 +602,20 @@ resource "azurerm_private_endpoint" "pep_primary" {
 
 resource "azurerm_private_endpoint" "pep_secondary" {
   count               = var.enabled && var.enable_failover_group && var.enable_private_endpoint ? 1 : 0
-  name                = format("pe-mssql-secondary%s", azurerm_mssql_server.secondary[0].name)
+  name                = format("pe-%s", azurerm_mssql_server.secondary[0].name)
   location            = var.location
   resource_group_name = var.resource_group_name
   subnet_id           = var.private_endpoint_subnet_id
   tags                = module.labels.tags
   private_service_connection {
-    name                           = var.resource_position_prefix ? format("psc-mssql-secondary-%s", local.name) : format("%s-psc-mssql-secondary", local.name)
+    name                           = var.resource_position_prefix ? format("psc-%s", azurerm_mssql_server.secondary[0].name) : format("%s-psc", azurerm_mssql_server.secondary[0].name)
     is_manual_connection           = false
     private_connection_resource_id = azurerm_mssql_server.secondary[0].id
     subresource_names              = ["sqlServer"]
   }
 
   private_dns_zone_group {
-    name                 = var.resource_position_prefix ? format("dns-zone-group-%s", local.name) : format("%s-dns-zone-group", local.name)
+    name                 = var.resource_position_prefix ? format("dns-zone-group-%s", azurerm_mssql_server.secondary[0].name) : format("%s-dns-zone-group", azurerm_mssql_server.secondary[0].name)
     private_dns_zone_ids = var.private_dns_zone_ids
   }
 
