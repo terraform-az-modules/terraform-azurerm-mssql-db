@@ -576,7 +576,7 @@ resource "azurerm_mssql_elasticpool" "elasticpool" {
 
 resource "azurerm_private_endpoint" "pep_primary" {
   count               = var.enabled && var.enable_private_endpoint ? 1 : 0
-  name                = format("pe-%s", azurerm_mssql_server.primary[0].name)
+  name                = var.resource_position_prefix ? format("pe-%s", azurerm_mssql_server.primary[0].name) : format("%s-pe", azurerm_mssql_server.primary[0].name)
   location            = var.location
   resource_group_name = var.resource_group_name
   subnet_id           = var.private_endpoint_subnet_id
@@ -602,7 +602,7 @@ resource "azurerm_private_endpoint" "pep_primary" {
 
 resource "azurerm_private_endpoint" "pep_secondary" {
   count               = var.enabled && var.enable_failover_group && var.enable_private_endpoint ? 1 : 0
-  name                = format("pe-%s", azurerm_mssql_server.secondary[0].name)
+  name                = var.resource_position_prefix ? format("pe-%s", azurerm_mssql_server.secondary[0].name) : format("%s-pe", azurerm_mssql_server.secondary[0].name)
   location            = var.location
   resource_group_name = var.resource_group_name
   subnet_id           = var.private_endpoint_subnet_id
