@@ -198,20 +198,6 @@ variable "outbound_network_restriction_enabled" {
   description = "Whether outbound network traffic is restricted for this server."
 }
 
-variable "primary_user_assigned_identity_id" {
-  type        = string
-  default     = null
-  description = " Specifies the primary user managed identity id."
-
-  validation {
-    condition = (
-      var.identity_ids == null ||
-      var.primary_user_assigned_identity_id != null
-    )
-    error_message = "primary_user_assigned_identity_id must be provided when identity_ids is set."
-  }
-}
-
 variable "minimum_tls_version" {
   type        = string
   default     = "1.2"
@@ -229,10 +215,10 @@ variable "azuread_administrator" {
   description = "Enable Azure AD-only authentication for the server administrator."
 }
 
-variable "identity_ids" {
-  type        = list(string)
-  default     = null
-  description = "List of user managed identity IDs for MSSQL DB."
+variable "enable_system_assigned_identity" {
+  type        = bool
+  default     = true
+  description = "Enable system-assigned managed identity on the SQL server."
 }
 
 variable "encryption" {
@@ -276,8 +262,8 @@ variable "storage_account_access_key_is_secondary" {
 }
 
 variable "log_retention_days" {
-  type        = string
-  default     = "7"
+  type        = number
+  default     = 7
   description = "Specifies the number of days to keep in the Threat Detection audit logs"
 }
 
@@ -722,8 +708,8 @@ variable "enclave_type" {
 }
 
 variable "zone_redundant" {
-  type        = string
-  default     = null
+  type        = bool
+  default     = false
   description = "Whether or not this elastic pool is zone redundant. "
 }
 

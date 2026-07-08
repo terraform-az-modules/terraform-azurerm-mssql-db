@@ -124,8 +124,8 @@ module "storage-account" {
 # ------------------------------------------------------------------------------
 module "vault" {
   source                        = "terraform-az-modules/key-vault/azurerm"
-  version                       = "1.0.4"
-  name                          = local.name
+  version                       = "3.1.0"
+  name                          = "test1231"
   environment                   = local.environment
   label_order                   = local.label_order
   resource_group_name           = module.resource_group.resource_group_name
@@ -134,7 +134,7 @@ module "vault" {
   public_network_access_enabled = true
   sku_name                      = "standard"
   enable_private_endpoint       = false
-  soft_delete_retention_days    = 7
+  # soft_delete_retention_days    = 7
   network_acls = {
     bypass         = "AzureServices"
     default_action = "Deny"
@@ -147,8 +147,8 @@ module "vault" {
     }
   }
 
-  diagnostic_setting_enable  = true
-  log_analytics_workspace_id = module.log-analytics.workspace_id
+  diagnostic_setting_enable = false
+  # log_analytics_workspace_id = module.log-analytics.workspace_id
 }
 
 ##----------------------------------------------------------------------------- 
@@ -170,9 +170,10 @@ module "mssql-server" {
   public_network_access_enabled              = true
   storage_account_blob_endpoint              = module.storage-account.storage_account_primary_blob_endpoint
   storage_account_access_key                 = module.storage-account.storage_primary_access_key
-  encryption                                 = false # Pass KV ID when encryption is enabled
-  # key_vault_id                               = module.vault.id
-  enable_mssql_db = true
+  encryption                                 = true # Pass KV ID when encryption is enabled
+  key_vault_id                               = module.vault.id
+  key_type                                   = "RSA" #RSA-HSM is supported by kv premium sku 
+  enable_mssql_db                            = true
   databases = {
     appdb = {
       sku_name                            = "Basic"

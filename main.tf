@@ -84,7 +84,7 @@ resource "azurerm_mssql_server" "primary" {
   transparent_data_encryption_key_vault_key_id = var.encryption ? azurerm_key_vault_key.main[0].id : var.transparent_data_encryption_key_vault_key_id
   public_network_access_enabled                = var.public_network_access_enabled
   outbound_network_restriction_enabled         = var.outbound_network_restriction_enabled
-  primary_user_assigned_identity_id            = var.encryption ? azurerm_user_assigned_identity.identity[0].id : var.identity_ids != null ? var.primary_user_assigned_identity_id : null
+  primary_user_assigned_identity_id            = var.encryption ? one(azurerm_user_assigned_identity.identity[*].id) : null
   minimum_tls_version                          = var.minimum_tls_version
 
   dynamic "azuread_administrator" {
@@ -98,11 +98,11 @@ resource "azurerm_mssql_server" "primary" {
   }
 
   dynamic "identity" {
-    for_each = var.encryption || var.identity_ids != null ? [1] : [1]
+    for_each = var.enable_system_assigned_identity || var.encryption ? [1] : []
 
     content {
-      type         = var.encryption || var.identity_ids != null ? "SystemAssigned, UserAssigned" : "SystemAssigned"
-      identity_ids = var.encryption ? [azurerm_user_assigned_identity.identity[0].id] : var.identity_ids
+      type         = var.encryption ? "SystemAssigned, UserAssigned" : "SystemAssigned"
+      identity_ids = var.encryption ? [one(azurerm_user_assigned_identity.identity[*].id)] : null
     }
   }
 
@@ -153,7 +153,7 @@ resource "azurerm_mssql_server" "secondary" {
   transparent_data_encryption_key_vault_key_id = var.encryption ? azurerm_key_vault_key.main[0].id : var.transparent_data_encryption_key_vault_key_id
   public_network_access_enabled                = var.public_network_access_enabled
   outbound_network_restriction_enabled         = var.outbound_network_restriction_enabled
-  primary_user_assigned_identity_id            = var.encryption ? azurerm_user_assigned_identity.identity[0].id : var.identity_ids != null ? var.primary_user_assigned_identity_id : null
+  primary_user_assigned_identity_id            = var.encryption ? one(azurerm_user_assigned_identity.identity[*].id) : null
   minimum_tls_version                          = var.minimum_tls_version
   tags                                         = module.labels.tags
 
@@ -168,11 +168,11 @@ resource "azurerm_mssql_server" "secondary" {
   }
 
   dynamic "identity" {
-    for_each = var.encryption || var.identity_ids != null ? [1] : [1]
+    for_each = var.enable_system_assigned_identity || var.encryption ? [1] : []
 
     content {
-      type         = var.encryption || var.identity_ids != null ? "SystemAssigned, UserAssigned" : "SystemAssigned"
-      identity_ids = var.encryption ? [azurerm_user_assigned_identity.identity[0].id] : var.identity_ids
+      type         = var.encryption ? "SystemAssigned, UserAssigned" : "SystemAssigned"
+      identity_ids = var.encryption ? [one(azurerm_user_assigned_identity.identity[*].id)] : null
     }
   }
 
