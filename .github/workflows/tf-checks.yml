@@ -10,8 +10,12 @@ jobs:
     uses: clouddrove/github-shared-workflows/.github/workflows/stf-checks.yml@v2
     with:
       working_directory: './examples/complete/'
-      provider: none
 
+  failover-policy-example:
+    uses: clouddrove/github-shared-workflows/.github/workflows/stf-checks.yml@v2
+    with:
+      working_directory: './examples/failover-policy/'
+  
 # Seperate Job for TFlint workflow call
   tf-lint:
     uses: clouddrove/github-shared-workflows/.github/workflows/tf-lint.yml@v2
