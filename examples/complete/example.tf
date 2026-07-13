@@ -103,7 +103,7 @@ module "private_dns_zone" {
 
 module "storage-account" {
   source  = "terraform-az-modules/storage/azurerm"
-  version = "1.0.0"
+  version = "3.2.0"
 
   name                     = local.name
   environment              = local.environment
