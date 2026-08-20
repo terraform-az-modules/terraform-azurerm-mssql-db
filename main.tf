@@ -118,7 +118,6 @@ resource "azurerm_mssql_server" "primary" {
 resource "azurerm_mssql_server_extended_auditing_policy" "primary" {
   count                                   = var.enabled && var.enable_sql_server_extended_auditing_policy ? 1 : 0
   server_id                               = azurerm_mssql_server.primary[0].id
-  storage_endpoint                        = var.storage_account_blob_endpoint
   storage_account_access_key              = var.storage_account_access_key
   storage_account_access_key_is_secondary = var.storage_account_access_key_is_secondary
   retention_in_days                       = var.log_retention_days
@@ -185,7 +184,6 @@ resource "azurerm_mssql_server" "secondary" {
 resource "azurerm_mssql_server_extended_auditing_policy" "secondary" {
   count                                   = var.enabled && var.enable_failover_group && var.enable_sql_server_extended_auditing_policy ? 1 : 0
   server_id                               = azurerm_mssql_server.secondary[0].id
-  storage_endpoint                        = var.storage_account_blob_endpoint
   storage_account_access_key              = var.storage_account_access_key
   storage_account_access_key_is_secondary = var.storage_account_access_key_is_secondary
   retention_in_days                       = var.log_retention_days
@@ -266,7 +264,6 @@ resource "azurerm_mssql_database" "db" {
     content {
       state                      = try(threat_detection_policy.value.state, null)
       disabled_alerts            = try(threat_detection_policy.value.disabled_alerts, null)
-      email_account_admins       = try(threat_detection_policy.value.email_account_admins, null)
       email_addresses            = try(threat_detection_policy.value.email_addresses, null)
       retention_days             = try(threat_detection_policy.value.retention_days, null)
       storage_account_access_key = try(threat_detection_policy.value.storage_account_access_key, null)
@@ -277,11 +274,10 @@ resource "azurerm_mssql_database" "db" {
   dynamic "long_term_retention_policy" {
     for_each = try(each.value.long_term_retention_policy, null) == null ? [] : [each.value.long_term_retention_policy]
     content {
-      weekly_retention          = try(long_term_retention_policy.value.weekly_retention, null)
-      monthly_retention         = try(long_term_retention_policy.value.monthly_retention, null)
-      yearly_retention          = try(long_term_retention_policy.value.yearly_retention, null)
-      week_of_year              = try(long_term_retention_policy.value.week_of_year, null)
-      immutable_backups_enabled = try(long_term_retention_policy.value.immutable_backups_enabled, null)
+      weekly_retention  = try(long_term_retention_policy.value.weekly_retention, null)
+      monthly_retention = try(long_term_retention_policy.value.monthly_retention, null)
+      yearly_retention  = try(long_term_retention_policy.value.yearly_retention, null)
+      week_of_year      = try(long_term_retention_policy.value.week_of_year, null)
     }
   }
 
@@ -308,7 +304,6 @@ resource "azurerm_mssql_database_extended_auditing_policy" "primary" {
   for_each = var.enabled && var.enable_database_extended_auditing_policy ? azurerm_mssql_database.db : {}
 
   database_id                             = each.value.id
-  storage_endpoint                        = var.storage_account_blob_endpoint
   storage_account_access_key              = var.storage_account_access_key
   storage_account_access_key_is_secondary = var.storage_account_access_key_is_secondary
   retention_in_days                       = var.log_retention_days
@@ -326,7 +321,6 @@ resource "azurerm_mssql_server_security_alert_policy" "sap_primary" {
   resource_group_name        = var.resource_group_name
   server_name                = azurerm_mssql_server.primary[0].name
   state                      = var.state
-  email_account_admins       = var.email_account_admins
   email_addresses            = var.email_addresses_for_alerts
   retention_days             = var.threat_detection_audit_logs_retention_days
   disabled_alerts            = var.disabled_alerts
@@ -339,7 +333,6 @@ resource "azurerm_mssql_server_security_alert_policy" "sap_secondary" {
   resource_group_name        = var.resource_group_name
   server_name                = azurerm_mssql_server.secondary[0].name
   state                      = var.state
-  email_account_admins       = var.email_account_admins
   email_addresses            = var.email_addresses_for_alerts
   retention_days             = var.threat_detection_audit_logs_retention_days
   disabled_alerts            = var.disabled_alerts
@@ -525,7 +518,6 @@ resource "azurerm_mssql_server_transparent_data_encryption" "tde" {
   count                 = var.enabled && var.enable_transparent_data_encryption ? 1 : 0
   server_id             = azurerm_mssql_server.primary[0].id
   key_vault_key_id      = var.encryption ? azurerm_key_vault_key.main[0].id : var.transparent_data_encryption_key_vault_key_id
-  managed_hsm_key_id    = var.managed_hsm_key_id
   auto_rotation_enabled = var.auto_rotation_enabled
   depends_on            = [azurerm_key_vault_key.main, azurerm_mssql_server.primary]
 }
