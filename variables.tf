@@ -340,19 +340,16 @@ variable "databases" {
     threat_detection_policy = optional(object({
       state                      = optional(string)
       disabled_alerts            = optional(list(string))
-      email_account_admins       = optional(bool)
       email_addresses            = optional(list(string))
       retention_days             = optional(number)
       storage_account_access_key = optional(string)
-      storage_endpoint           = optional(string)
     }))
 
     long_term_retention_policy = optional(object({
-      weekly_retention          = optional(string)
-      monthly_retention         = optional(string)
-      yearly_retention          = optional(string)
-      week_of_year              = optional(number)
-      immutable_backups_enabled = optional(bool)
+      weekly_retention  = optional(string)
+      monthly_retention = optional(string)
+      yearly_retention  = optional(string)
+      week_of_year      = optional(number)
     }))
 
     short_term_retention_policy = optional(object({
@@ -391,11 +388,6 @@ variable "state" {
   description = "Specifies the state of the policy. Possible Values 'Enabled', 'Disabled'."
 }
 
-variable "email_account_admins" {
-  type        = bool
-  default     = false
-  description = "Are the alerts sent to the account administrators?."
-}
 
 variable "email_addresses_for_alerts" {
   type        = list(any)
@@ -517,12 +509,6 @@ variable "enable_transparent_data_encryption" {
   type        = bool
   default     = false
   description = "Enable or Disable creation of Transparent data encryption in Databases."
-}
-
-variable "managed_hsm_key_id" {
-  type        = string
-  default     = null
-  description = "Managed HSM key ID for the transparent data encryption."
 }
 
 variable "auto_rotation_enabled" {
