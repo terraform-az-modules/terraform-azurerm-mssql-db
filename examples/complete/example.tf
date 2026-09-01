@@ -124,7 +124,7 @@ module "storage-account" {
 # ------------------------------------------------------------------------------
 module "vault" {
   source                        = "terraform-az-modules/key-vault/azurerm"
-  version                       = "3.1.0"
+  version                       = "3.2.0"
   name                          = "test1231"
   environment                   = local.environment
   label_order                   = local.label_order
